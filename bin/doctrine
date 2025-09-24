@@ -1,0 +1,103 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Doctrine Console Application for Hyperf
+ * 
+ * This script provides a standalone console interface for Doctrine ORM operations
+ * when used outside of the main Hyperf application context.
+ */
+
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Hyperf\Context\ApplicationContext;
+use Hyperf\Contract\ConfigInterface;
+use MineAdmin\Doctrine\Factory\EntityManagerFactory;
+
+// Autoload
+$possiblePaths = [
+    __DIR__ . '/../../../autoload.php', // In vendor
+    __DIR__ . '/../vendor/autoload.php', // Standalone
+];
+
+$autoloadPath = null;
+foreach ($possiblePaths as $path) {
+    if (file_exists($path)) {
+        $autoloadPath = $path;
+        break;
+    }
+}
+
+if (!$autoloadPath) {
+    throw new RuntimeException('Unable to find Composer autoload.php');
+}
+
+require_once $autoloadPath;
+
+// Check if we're in a Hyperf application context
+if (class_exists(ApplicationContext::class) && ApplicationContext::hasContainer()) {
+    // Use the configured EntityManager from Hyperf container
+    $container = ApplicationContext::getContainer();
+    $entityManager = $container->get(EntityManagerInterface::class);
+} else {
+    // Standalone mode - create EntityManager directly
+    echo "Running in standalone mode...\n";
+    
+    // Basic configuration - adjust as needed
+    $config = [
+        'doctrine' => [
+            'dev_mode' => true,
+            'proxy_dir' => __DIR__ . '/../runtime/proxies',
+            'entity_paths' => [__DIR__ . '/../src/Entity'],
+            'connection' => [
+                'driver' => 'pdo_sqlite',
+                'path' => __DIR__ . '/../runtime/db.sqlite',
+            ],
+            'cache' => ['driver' => 'array'],
+        ]
+    ];
+    
+    // Mock container for standalone operation
+    $container = new class($config) {
+        private array $config;
+        
+        public function __construct(array $config) {
+            $this->config = $config;
+        }
+        
+        public function get(string $id) {
+            if ($id === ConfigInterface::class) {
+                return new class($this->config) implements ConfigInterface {
+                    private array $config;
+                    
+                    public function __construct(array $config) {
+                        $this->config = $config;
+                    }
+                    
+                    public function get(string $key, $default = null) {
+                        return $this->config[$key] ?? $default;
+                    }
+                    
+                    public function has(string $keys): bool {
+                        return isset($this->config[$keys]);
+                    }
+                    
+                    public function set(string $key, $value): void {
+                        $this->config[$key] = $value;
+                    }
+                };
+            }
+            return null;
+        }
+    };
+    
+    $factory = new EntityManagerFactory();
+    $entityManager = $factory($container);
+}
+
+// Create and run console application
+$entityManagerProvider = new SingleManagerProvider($entityManager);
+ConsoleRunner::run($entityManagerProvider);

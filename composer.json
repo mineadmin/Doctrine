@@ -1,0 +1,73 @@
+{
+    "name": "mineadmin/doctrine",
+    "description": "Doctrine ORM component for Hyperf framework",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "php",
+        "hyperf",
+        "doctrine",
+        "orm",
+        "database",
+        "mineadmin"
+    ],
+    "homepage": "https://github.com/mineadmin/Doctrine",
+    "support": {
+        "issues": "https://github.com/mineadmin/Doctrine/issues",
+        "source": "https://github.com/mineadmin/Doctrine"
+    },
+    "authors": [
+        {
+            "name": "MineAdmin Team",
+            "email": "team@mineadmin.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "hyperf/framework": "^3.1",
+        "hyperf/di": "^3.1",
+        "hyperf/config": "^3.1",
+        "hyperf/command": "^3.1",
+        "hyperf/pool": "^3.1",
+        "doctrine/orm": "^3.0",
+        "doctrine/dbal": "^4.0",
+        "doctrine/migrations": "^3.7",
+        "doctrine/annotations": "^2.0",
+        "doctrine/cache": "^2.2",
+        "symfony/cache": "^7.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "hyperf/testing": "^3.1",
+        "phpunit/phpunit": "^10.0",
+        "swoole/ide-helper": "^5.0"
+    },
+    "suggest": {
+        "doctrine/doctrine-fixtures-bundle": "For loading test data",
+        "doctrine/data-fixtures": "For loading test data"
+    },
+    "autoload": {
+        "psr-4": {
+            "MineAdmin\\Doctrine\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MineAdminTest\\Doctrine\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/doctrine"
+    ],
+    "extra": {
+        "hyperf": {
+            "config": "MineAdmin\\Doctrine\\ConfigProvider"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
